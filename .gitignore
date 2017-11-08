@@ -36,3 +36,5 @@ bin/hfcxx
 *.ply
 *.obj
 *.chg
+
+hfcxx
