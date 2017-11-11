@@ -19,7 +19,7 @@ ifeq ($(UNAME_S),Darwin)
     CFLAGS  += -I/opt/local/include/eigen3 -I/opt/local/include
 	LDFLAGS +=
 else
-    CFLAGS += `pkg-config --cflags eigen3`
+    CFLAGS += `pkg-config --cflags eigen3` -I/mingw64/include
 	LDFLAGS +=
 endif
 
