@@ -16,7 +16,7 @@ CFLAGS += -I$(SRCDIR)
 # specify OS-related stuff
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-    CFLAGS  += -I/opt/local/include/eigen3 -I/opt/local/include
+    CFLAGS  += -I/usr/local/Cellar/eigen/3.3.4/include/eigen3
 	LDFLAGS +=
 else
     CFLAGS += `pkg-config --cflags eigen3` -I/mingw64/include
