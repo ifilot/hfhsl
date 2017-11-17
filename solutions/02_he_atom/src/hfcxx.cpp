@@ -37,22 +37,33 @@ int main() {
     // construct two CGFs for two H atoms 1.4 a.u. apart
     const vec3 pos1(0.0, 0.0, 0.0);
     CGF cgf1(pos1);
-    cgf1.add_gto(CGF::GTO_S, 3.4252509099999999,  0.15432897000000001, pos1);
-    cgf1.add_gto(CGF::GTO_S, 0.62391373000000006, 0.53532813999999995, pos1);
-    cgf1.add_gto(CGF::GTO_S, 0.16885539999999999, 0.44463454000000002, pos1);
+    cgf1.add_gto(CGF::GTO_S, 6.3624213899999997,  0.15432897000000001, pos1);
+    cgf1.add_gto(CGF::GTO_S, 1.1589229999999999, 0.53532813999999995, pos1);
+    cgf1.add_gto(CGF::GTO_S, 0.31364978999999998, 0.44463454000000002, pos1);
+
+    // Collect all CGFS in a vector object
+    std::vector<CGF> cgfs;
+    cgfs.push_back(cgf1);
 
     // create integrator object
     Integrator integrator;
 
-    // calculate overlap integral (should be unity)
+    // calculate the integral values using the integrator class
     double S = integrator.overlap(cgf1, cgf1);
     double T = integrator.kinetic(cgf1, cgf1);
-    double V = integrator.nuclear(cgf1, cgf1, pos1, 1.0);
+    double V = integrator.nuclear(cgf1, cgf1, pos1, 2.0);
 
-    std::cout << "Overlap integral:    " << S << std::endl;
-    std::cout << "Kinetic integral:    " << T << std::endl;
-    std::cout << "Nuclear integral:    " << V << std::endl;
-    std::cout << "Total energy:        " << T + V << std::endl;
+    // calculate all two-electron integrals
+    double te = integrator.repulsion(cgf1, cgf1, cgf1, cgf1);
+
+    // Calculate 1-electron Hamiltonian matrix
+    double E = 2 * (T + V) + te;
+
+    std::cout << "Overlap integral:               " << S << std::endl;
+    std::cout << "Kinetic integral:               " << T << std::endl;
+    std::cout << "Nuclear integral:               " << V << std::endl;
+    std::cout << "Electron repulsion integral:    " << te << std::endl;
+    std::cout << "Total energy:                   " << E << std::endl;
 
     return 0;
 }
