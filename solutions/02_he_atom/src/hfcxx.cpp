@@ -19,8 +19,6 @@
  *
  ************************************************************************/
 
-#include <Eigen/Eigenvalues>
-
 #include "cgf.h"
 #include "integrals.h"
 

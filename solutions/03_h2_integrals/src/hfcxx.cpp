@@ -25,9 +25,7 @@
 #include "integrals.h"
 
 /*
- * Calculates the energy of H2 using the Hartree-Fock Self-Consistent Field
- * method. An STO-3G basis set is used in the description of the 1s orbitals
- * of the two H atoms. The H atoms are positioned 1.4 a.u. apart.
+ * Calculate the integrals of H2. The H atoms are positioned 1.4 a.u. apart.
  *
  * All calculations are performed in standard units.
  */

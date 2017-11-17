@@ -25,9 +25,7 @@
 #include "integrals.h"
 
 /*
- * Calculates the energy of H2 using the Hartree-Fock Self-Consistent Field
- * method. An STO-3G basis set is used in the description of the 1s orbitals
- * of the two H atoms. The H atoms are positioned 1.4 a.u. apart.
+ * Calculate the integrals of H2. The H atoms are positioned 1.4 a.u. apart.
  *
  * All calculations are performed in standard units.
  */
@@ -63,9 +61,12 @@ int main() {
     for(unsigned int i=0; i<2; i++) {
         for(unsigned int j=0; j<2; j++) {
             S(i,j) = integrator.overlap(cgfs[i], cgfs[j]);
-            T(i,j) = integrator.kinetic(cgfs[i], cgfs[j]);
-            V1(i,j) = integrator.nuclear(cgfs[i], cgfs[j], pos1, 1.0);
-            V2(i,j) = integrator.nuclear(cgfs[i], cgfs[j], pos2, 1.0);
+            
+            /*
+             * START CODING HERE
+             * Write here the routines to store the elements for the kinetic energy and
+             * the nuclear attraction matrices.
+             */
         }
     }
 
@@ -87,7 +88,10 @@ int main() {
                             continue;
                         }
 
-                        tedouble[idx] = integrator.repulsion(cgfs[i], cgfs[j], cgfs[k], cgfs[l]);
+                        /*
+                         * START CODING HERE
+                         * Store here the values for the two-electron integrals
+                         */
                     }
                 }
             }
@@ -116,20 +120,9 @@ int main() {
 
     // print all unique two electorn integrals
     std::cout << "Two electron integrals:" << std::endl;
-    for(unsigned int i=0; i<2; i++) {
-        for(unsigned int j=0; j<2; j++) {
-            unsigned int ij = i*(i+1)/2 + j;
-            for(unsigned int k=0; k<2; k++) {
-                for(unsigned int l=0; l<2; l++) {
-                    unsigned int kl = k * (k+1)/2 + l;
-                    if(ij <= kl) {
-                        unsigned int idx = integrator.teindex(i,j,k,l);
-                        std::cout << "[" << idx << "] " << "(" << i+1 << "," << j+1 << "," << k+1 << "," << l+1 << ") ";
-                        std::cout << tedouble[idx] << std::endl;
-                    }
-                }
-            }
-        }
+    for(unsigned int idx=0; idx<6; idx++) {
+        std::cout << "[" << idx << "] ";
+        std::cout << tedouble[idx] << std::endl;
     }
 
     return 0;
