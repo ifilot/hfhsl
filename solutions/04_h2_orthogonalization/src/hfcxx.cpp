@@ -113,5 +113,10 @@ int main() {
     std::cout << X << std::endl;
     std::cout << std::endl;
 
+    // Construct orthonormalized overlap matrix
+    Eigen::Matrix2d S2 = X.transpose() * S * X;
+    std::cout << S2 << std::endl;
+    std::cout << S2 << std::endl;
+
     return 0;
 }
