@@ -1,21 +1,21 @@
 /*************************************************************************
  *
- *  This file is part of HFCXX.
+ *  This file is part of HFHSL.
  *
  *  Author: Ivo Filot <i.a.w.filot@tue.nl>
  *
- *  HFCXX is free software: you can redistribute it and/or modify
+ *  HFHSL is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  HFCXX is distributed in the hope that it will be useful,
+ *  HFHSL is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with HFCXX.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with HFHSL.  If not, see <http://www.gnu.org/licenses/>.
  *
  ************************************************************************/
 
@@ -63,34 +63,6 @@ int main() {
     for(unsigned int i=0; i<2; i++) {
         for(unsigned int j=0; j<2; j++) {
             S(i,j) = integrator.overlap(cgfs[i], cgfs[j]);
-            T(i,j) = integrator.kinetic(cgfs[i], cgfs[j]);
-            V1(i,j) = integrator.nuclear(cgfs[i], cgfs[j], pos1, 1.0);
-            V2(i,j) = integrator.nuclear(cgfs[i], cgfs[j], pos2, 1.0);
-        }
-    }
-
-    // calculate all two-electron integrals
-    unsigned int size = integrator.teindex(2,2,2,2);
-    std::vector<double> tedouble(size, -1.0);
-    for(unsigned int i=0; i<2; i++) {
-        for(unsigned int j=0; j<2; j++) {
-            unsigned int ij = i*(i+1)/2 + j;
-            for(unsigned int k=0; k<2; k++) {
-                for(unsigned int l=0; l<2; l++) {
-                    unsigned int kl = k * (k+1)/2 + l;
-                    if(ij <= kl) {
-                        unsigned int idx = integrator.teindex(i,j,k,l);
-
-                        // this avoids recalculating an integral which has
-                        // already been evaluated
-                        if(tedouble[idx] != -1.0) {
-                            continue;
-                        }
-
-                        tedouble[idx] = integrator.repulsion(cgfs[i], cgfs[j], cgfs[k], cgfs[l]);
-                    }
-                }
-            }
         }
     }
 
