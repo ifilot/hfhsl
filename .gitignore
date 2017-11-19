@@ -38,3 +38,4 @@ bin/hfcxx
 *.chg
 
 hfcxx
+*.stackdump
