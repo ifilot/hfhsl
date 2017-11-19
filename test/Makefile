@@ -1,7 +1,7 @@
 # set compiler and compile options
 EXEC = hfcxx
 CXX = g++                             # use the GNU C++ compiler
-OPTS = -std=c++0x -O3 -Wall           # use some optimization, report all warnings and enable debugging
+OPTS = -std=c++14 -O3 -Wall           # use some optimization, report all warnings and enable debugging
 CFLAGS = $(OPTS)                      # add compile flags
 LDFLAGS = # specify link flags here
 

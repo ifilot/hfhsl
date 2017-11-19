@@ -1,21 +1,21 @@
 /*************************************************************************
  *
- *  This file is part of HFCXX.
+ *  This file is part of HFHSL.
  *
  *  Author: Ivo Filot <i.a.w.filot@tue.nl>
  *
- *  HFCXX is free software: you can redistribute it and/or modify
+ *  HFHSL is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  HFCXX is distributed in the hope that it will be useful,
+ *  HFHSL is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with HFCXX.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with HFHSL.  If not, see <http://www.gnu.org/licenses/>.
  *
  ************************************************************************/
 
@@ -23,6 +23,7 @@
 
 #include "cgf.h"
 #include "integrals.h"
+#include "sort.h"
 
 /*
  * Calculates the energy of H2 using the Hartree-Fock Self-Consistent Field
@@ -57,11 +58,14 @@ int main() {
 
     // Construct 2x2 matrices to hold values for the overlap,
     // kinetic and two nuclear integral values, respectively.
-    Eigen::Matrix2d S, T, V1, V2;
+    Eigen::MatrixXd S = Eigen::MatrixXd::Zero(cgfs.size(), cgfs.size());
+    Eigen::MatrixXd T = Eigen::MatrixXd::Zero(cgfs.size(), cgfs.size());
+    Eigen::MatrixXd V1 = Eigen::MatrixXd::Zero(cgfs.size(), cgfs.size());
+    Eigen::MatrixXd V2 = Eigen::MatrixXd::Zero(cgfs.size(), cgfs.size());
 
     // calculate the integral values using the integrator class
-    for(unsigned int i=0; i<2; i++) {
-        for(unsigned int j=0; j<2; j++) {
+    for(unsigned int i=0; i<cgfs.size(); i++) {
+        for(unsigned int j=0; j<cgfs.size(); j++) {
             S(i,j) = integrator.overlap(cgfs[i], cgfs[j]);
             T(i,j) = integrator.kinetic(cgfs[i], cgfs[j]);
             V1(i,j) = integrator.nuclear(cgfs[i], cgfs[j], pos1, 1.0);
@@ -69,14 +73,17 @@ int main() {
         }
     }
 
+    // Calculate 1-electron Hamiltonian matrix
+    Eigen::MatrixXd H = T + V1 + V2;
+
     // calculate all two-electron integrals
-    unsigned int size = integrator.teindex(2,2,2,2);
+    unsigned int size = integrator.teindex(cgfs.size(),cgfs.size(),cgfs.size(),cgfs.size());
     std::vector<double> tedouble(size, -1.0);
-    for(unsigned int i=0; i<2; i++) {
-        for(unsigned int j=0; j<2; j++) {
+    for(unsigned int i=0; i<cgfs.size(); i++) {
+        for(unsigned int j=0; j<cgfs.size(); j++) {
             unsigned int ij = i*(i+1)/2 + j;
-            for(unsigned int k=0; k<2; k++) {
-                for(unsigned int l=0; l<2; l++) {
+            for(unsigned int k=0; k<cgfs.size(); k++) {
+                for(unsigned int l=0; l<cgfs.size(); l++) {
                     unsigned int kl = k * (k+1)/2 + l;
                     if(ij <= kl) {
                         unsigned int idx = integrator.teindex(i,j,k,l);
@@ -90,26 +97,24 @@ int main() {
     // perform a canonical diagonalization on the overlap matrix to
     // obtain orthonormal spinorbitals (required for the Slater
     // Determinant)
-    Eigen::EigenSolver<Eigen::Matrix2d> es(S, true);
-    Eigen::Matrix2d D;
-    D(0,0) = 1.0 / std::sqrt(es.eigenvalues()(0,0).real() );
-    D(1,1) = 1.0 / std::sqrt(es.eigenvalues()(1,0).real() );
-
-    Eigen::Matrix2d U = es.eigenvectors().real();
+    Eigen::EigenSolver<Eigen::MatrixXd> es(S, true);
+    Eigen::MatrixXd D = es.eigenvalues().real().asDiagonal();
+    Eigen::MatrixXd U = es.eigenvectors().real();
+    sort_eigenvalues(U,D);
+    for(unsigned int i=0; i<cgfs.size(); i++) {
+        D(i,i) = 1.0 / sqrt(D(i,i));
+    }
 
     // Calculate the transformation matrix
-    Eigen::Matrix2d X = U * D;
-    Eigen::Matrix2d Xp = X.transpose();
+    Eigen::MatrixXd X = U * D;
+    Eigen::MatrixXd Xp = X.transpose();
 
     // Create Density matrices
-    Eigen::Matrix2d P;
-    Eigen::Matrix2d Pnew;
-
-    // Calculate 1-electron Hamiltonian matrix
-    Eigen::Matrix2d H = T + V1 + V2;
+    Eigen::MatrixXd P = Eigen::MatrixXd::Zero(cgfs.size(), cgfs.size());
+    Eigen::MatrixXd Pnew = Eigen::MatrixXd::Zero(cgfs.size(), cgfs.size());
 
     // Create two-electron Hamiltonian matrix
-    Eigen::Matrix2d G;
+    Eigen::MatrixXd G = Eigen::MatrixXd::Zero(cgfs.size(), cgfs.size());
 
     // define mixing parameter in the SCF iterations
     static const double alpha = 0.5;
@@ -117,24 +122,29 @@ int main() {
     // hold energy value of previous iteration
     double energy_old = 0.0;
 
-    // difference between previous and current SCF iteration
+    // difference between previous and current SCF iteration 
+    // (initialize with some large number)
     double energy_difference = 1.0;
 
     // keep track of number of iterations
     unsigned int loop_counter = 0;
 
+    // construct object to store eigenvectors and eigenvalues of the Fock-matrix in
+    Eigen::MatrixXd C;
+    Eigen::VectorXd orbital_energies;
+
     /*
      * START ITERATIVE PROCEDURE
      */
-    while(energy_difference > 1e-5) {
+    while(energy_difference > 1e-5 && loop_counter < 100) {
         loop_counter++; // increment loop counter
 
         // Populate two-electron hamiltonian matrix
-        for(unsigned int i=0; i<2; i++) {
-            for(unsigned int j=0; j<2; j++) {
+        for(unsigned int i=0; i<cgfs.size(); i++) {
+            for(unsigned int j=0; j<cgfs.size(); j++) {
                 G(i,j) = 0.; /* reset G matrix */
-                for(unsigned int k=0; k<2; k++) {
-                    for(unsigned int l=0; l<2; l++) {
+                for(unsigned int k=0; k<cgfs.size(); k++) {
+                    for(unsigned int l=0; l<cgfs.size(); l++) {
                         unsigned int index1 = integrator.teindex(i,j,l,k);
                         unsigned int index2 = integrator.teindex(i,k,l,j);
                         G(i,j) += P(k,l) * (tedouble[index1] - 0.5 * tedouble[index2]);
@@ -144,20 +154,21 @@ int main() {
         }
 
         // Calculate Fock Matrix
-        Eigen::Matrix2d F = H + G;
+        Eigen::MatrixXd F = H + G;
 
         // Transform Fock Matrix using our basis transformation matrix
-        Eigen::Matrix2d Fp = Xp * F * X;
+        Eigen::MatrixXd Fp = Xp * F * X;
 
         // Calculate eigenvalues and vectors
         es.compute(Fp, true);
-        Eigen::Matrix2d Cc = es.eigenvectors().real();
+        Eigen::MatrixXd Cc = es.eigenvectors().real();
+        Eigen::MatrixXd en = es.eigenvalues().real().asDiagonal();
 
         // Calculate energy
         double energy = 0.0;
-        Eigen::Matrix2d M = H + F;
-        for(unsigned int i=0; i<2; i++) {
-            for(unsigned int j=0; j<2; j++) {
+        Eigen::MatrixXd M = H + F;
+        for(unsigned int i=0; i<cgfs.size(); i++) {
+            for(unsigned int j=0; j<cgfs.size(); j++) {
                 energy += P(j,i) * M(i,j);
             }
         }
@@ -166,19 +177,24 @@ int main() {
         energy = energy * 0.5 + 1.0 / 1.4;
 
         // Obtain true coefficient matrix using the transformation matrix
-        Eigen::Matrix2d C = X * Cc;
+        C = X * Cc;
+        sort_eigenvalues(C,en);
+        orbital_energies = en.diagonal();
 
-        Pnew = Eigen::Matrix2d::Zero();
-        for(unsigned int i=0; i<2; i++) {
-            for(unsigned int j=0; j<2; j++) {
+        // obtain new P matrix from the old matrix
+        Pnew = Eigen::MatrixXd::Zero(cgfs.size(), cgfs.size());
+        for(unsigned int i=0; i<cgfs.size(); i++) {
+            for(unsigned int j=0; j<cgfs.size(); j++) {
                 for(unsigned int k=0; k<1; k++) {
                     Pnew(i,j) += 2.0 * C(i,k) * C(j,k);
                 }
             }
         }
 
-        for(unsigned int i=0; i<2; i++) {
-            for(unsigned int j=0; j<2; j++) {
+        // construct new P-matrix by mixing old and new matrix. This is not always necessary, 
+        // but sometimes the SCF calculation does not converge without it.
+        for(unsigned int i=0; i<cgfs.size(); i++) {
+            for(unsigned int j=0; j<cgfs.size(); j++) {
                 P(i,j) = (1.0-alpha) * Pnew(i,j) + alpha * P(i,j);
             }
         }
