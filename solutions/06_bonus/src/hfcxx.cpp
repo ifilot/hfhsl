@@ -23,7 +23,6 @@
 
 #include "cgf.h"
 #include "integrals.h"
-#include "sort.h"
 
 /*
  * Calculates the energy of H2 using the Hartree-Fock Self-Consistent Field
@@ -117,11 +116,11 @@ int main() {
 
     // calculate the integral values using the integrator class
     for(unsigned int i=0; i<cgfs.size(); i++) {
-        for(unsigned int j=0; j<cgfs.size(); j++) {
-            S(i,j) = integrator.overlap(cgfs[i], cgfs[j]);
-            T(i,j) = integrator.kinetic(cgfs[i], cgfs[j]);
-            V1(i,j) = integrator.nuclear(cgfs[i], cgfs[j], pos1, 6.0);
-            V2(i,j) = integrator.nuclear(cgfs[i], cgfs[j], pos2, 8.0);
+        for(unsigned int j=i; j<cgfs.size(); j++) {
+            S(i,j) = S(j,i) = integrator.overlap(cgfs[i], cgfs[j]);
+            T(i,j) = T(j,i) = integrator.kinetic(cgfs[i], cgfs[j]);
+            V1(i,j) = V1(j,i) = integrator.nuclear(cgfs[i], cgfs[j], pos1, 6.0);
+            V2(i,j) = V2(j,i) = integrator.nuclear(cgfs[i], cgfs[j], pos2, 8.0);
         }
     }
 
@@ -155,15 +154,14 @@ int main() {
     // perform a canonical diagonalization on the overlap matrix to
     // obtain orthonormal spinorbitals (required for the Slater
     // Determinant)
-    Eigen::EigenSolver<Eigen::MatrixXd> es(S, true);
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S);
     Eigen::MatrixXd D = es.eigenvalues().real().asDiagonal();
     Eigen::MatrixXd U = es.eigenvectors().real();
-    sort_eigenvalues(U,D);
+
     for(unsigned int i=0; i<cgfs.size(); i++) {
         D(i,i) = 1.0 / sqrt(D(i,i));
     }
 
-    std::cout << S << std::endl;
 
     // Calculate the transformation matrix
     Eigen::MatrixXd X = U * D;
@@ -230,6 +228,7 @@ int main() {
 
         // Transform Fock Matrix using our basis transformation matrix
         Eigen::MatrixXd Fp = Xp * F * X;
+              
 
         /*********************************
          *
@@ -238,7 +237,7 @@ int main() {
          *********************************/
 
         // Calculate eigenvalues and vectors
-        es.compute(Fp, true);
+        es.compute(Fp);
         Eigen::MatrixXd Cc = es.eigenvectors().real();
         Eigen::MatrixXd en = es.eigenvalues().real().asDiagonal();
 
@@ -262,8 +261,7 @@ int main() {
 
         // Obtain true coefficient matrix using the transformation matrix
         C = X * Cc;
-        sort_eigenvalues(C,en);
-        orbital_energies = en.diagonal();
+        orbital_energies = en.diagonal();;
 
         /*********************************
          *

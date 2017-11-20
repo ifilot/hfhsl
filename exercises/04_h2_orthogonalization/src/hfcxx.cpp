@@ -72,7 +72,7 @@ int main() {
     std::cout << std::endl;
 
     // perform matrix diagonalization
-    Eigen::EigenSolver<Eigen::Matrix2d> es(S, true);
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> es(S);
     Eigen::Matrix2d D = es.eigenvalues().real().asDiagonal();
     Eigen::Matrix2d U = es.eigenvectors().real();
 

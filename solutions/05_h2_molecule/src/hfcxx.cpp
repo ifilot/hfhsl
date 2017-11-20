@@ -23,7 +23,6 @@
 
 #include "cgf.h"
 #include "integrals.h"
-#include "sort.h"
 
 /*
  * Calculates the energy of H2 using the Hartree-Fock Self-Consistent Field
@@ -119,10 +118,9 @@ int main() {
     // perform a canonical diagonalization on the overlap matrix to
     // obtain orthonormal spinorbitals (required for the Slater
     // Determinant)
-    Eigen::EigenSolver<Eigen::MatrixXd> es(S, true);
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S);
     Eigen::MatrixXd D = es.eigenvalues().real().asDiagonal();
     Eigen::MatrixXd U = es.eigenvectors().real();
-    sort_eigenvalues(U,D);
     for(unsigned int i=0; i<cgfs.size(); i++) {
         D(i,i) = 1.0 / sqrt(D(i,i));
     }
@@ -200,7 +198,7 @@ int main() {
          *********************************/
 
         // Calculate eigenvalues and vectors
-        es.compute(Fp, true);
+        es.compute(Fp);
         Eigen::MatrixXd Cc = es.eigenvectors().real();
         Eigen::MatrixXd en = es.eigenvalues().real().asDiagonal();
 
@@ -224,7 +222,6 @@ int main() {
 
         // Obtain true coefficient matrix using the transformation matrix
         C = X * Cc;
-        sort_eigenvalues(C,en);
         orbital_energies = en.diagonal();
 
         /*********************************
