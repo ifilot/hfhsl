@@ -35,7 +35,9 @@ private:
 public:
 	DensityPlotter();
 
-	void plot_densities(const std::vector<CGF>& cgfs, const Eigen::MatrixXd& C);
+	void plot_densities_chgcar(const std::vector<CGF>& cgfs, const Eigen::MatrixXd& C);
+
+	void plot_densities_cube(const std::vector<CGF>& cgfs, const Eigen::MatrixXd& C);
 
 private:
 

@@ -308,8 +308,8 @@ int main() {
     std::cout << "Solution matrix; each column is a solution" << std::endl;
     std::cout << C << std::endl;
 
-    // DensityPlotter dp;
-    // dp.plot_densities(cgfs, C);
+    DensityPlotter dp;
+    dp.plot_densities_cube(cgfs, C);
 
     return 0;
 }

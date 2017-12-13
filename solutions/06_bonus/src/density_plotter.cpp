@@ -25,7 +25,7 @@ DensityPlotter::DensityPlotter() {
 
 }
 
-void DensityPlotter::plot_densities(const std::vector<CGF>& cgfs, const Eigen::MatrixXd& C) {
+void DensityPlotter::plot_densities_chgcar(const std::vector<CGF>& cgfs, const Eigen::MatrixXd& C) {
 	static const double range = 10;
 	static const double inc = 0.2;
 	double volume = range * range * range * 8;
@@ -66,6 +66,47 @@ void DensityPlotter::plot_densities(const std::vector<CGF>& cgfs, const Eigen::M
 						cnt = 0;
 					}
 				}
+			}
+		}
+	}
+}
+
+void DensityPlotter::plot_densities_cube(const std::vector<CGF>& cgfs, const Eigen::MatrixXd& C) {
+	static const double range = 10;
+	static const double inc = 0.2;
+
+	for(unsigned int i=0; i<cgfs.size(); i++) {
+		Eigen::VectorXd coefs = C.col(i);
+
+		std::ofstream outfile((boost::format("%04i.cube") % (i+1)).str());
+
+		outfile << "HFHSL CUBE FILE." << std::endl;
+ 		outfile << "OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z" << std::endl;
+    	outfile << "3    0.000000    0.000000    0.000000" << std::endl;
+    	outfile << (int)(range/inc*2+1) << " " << inc << " " << 0 << " " << 0 << std::endl;
+    	outfile << (int)(range/inc*2+1) << " " << 0 << " " << inc << " " << 0 << std::endl;
+    	outfile << (int)(range/inc*2+1) << " " << 0 << " " << 0 << " " << inc << std::endl;
+
+		unsigned int cnt = 0;
+		for(double x=-range; x<=range; x+=inc) {
+			for(double y=-range; y<=range; y+=inc) {
+				for(double z=-range; z<=range; z+=inc) {
+
+					double sum = 0.0;
+					for(unsigned int j=0; j<cgfs.size(); j++) {
+						sum += coefs[j] * cgfs[j].get_value(x,y,z);
+					}
+
+					outfile << (boost::format("%12.6f ") % ((sum * sum) * 2.0)).str();
+
+					cnt++;
+					if(cnt % 6 == 0) {
+						outfile << std::endl;
+						cnt = 0;
+					}
+				}
+				outfile << std::endl;
+				cnt = 0;
 			}
 		}
 	}

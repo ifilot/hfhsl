@@ -40,3 +40,5 @@ bin/hfcxx
 hfcxx
 *.stackdump
 *.dat
+*.cub
+*.cube
