@@ -71,21 +71,34 @@ void DensityPlotter::plot_densities_chgcar(const std::vector<CGF>& cgfs, const E
 	}
 }
 
-void DensityPlotter::plot_densities_cube(const std::vector<CGF>& cgfs, const Eigen::MatrixXd& C) {
+void DensityPlotter::plot_densities_cube(const std::vector<unsigned int>& atoms, 
+										 const std::vector<vec3>& pos,
+										 const std::vector<CGF>& cgfs, 
+										 const Eigen::MatrixXd& C) {
 	static const double range = 10;
 	static const double inc = 0.2;
 
 	for(unsigned int i=0; i<cgfs.size(); i++) {
 		Eigen::VectorXd coefs = C.col(i);
 
-		std::ofstream outfile((boost::format("%04i.cube") % (i+1)).str());
+		std::string filename = (boost::format("%04i.cube") % (i+1)).str();
+		std::cout << "Outputting cube file to: " << filename << std::endl;
+		std::ofstream outfile(filename);
 
 		outfile << "HFHSL CUBE FILE." << std::endl;
  		outfile << "OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z" << std::endl;
-    	outfile << "3    0.000000    0.000000    0.000000" << std::endl;
-    	outfile << (int)(range/inc*2+1) << " " << inc << " " << 0 << " " << 0 << std::endl;
-    	outfile << (int)(range/inc*2+1) << " " << 0 << " " << inc << " " << 0 << std::endl;
-    	outfile << (int)(range/inc*2+1) << " " << 0 << " " << 0 << " " << inc << std::endl;
+    	// print number of atoms and center of unit cell
+    	outfile << (boost::format("%i  %g  %g  %g") % atoms.size() % range % range % range).str() << std::endl;
+
+    	// print unit cell information
+    	outfile << (boost::format("%i  %g  %g  %g") % (int)(range/inc*2+1) % inc % 0.0 % 0.0).str() << std::endl;
+    	outfile << (boost::format("%i  %g  %g  %g") % (int)(range/inc*2+1) % 0.0 % inc % 0.0).str() << std::endl;
+    	outfile << (boost::format("%i  %g  %g  %g") % (int)(range/inc*2+1) % 0.0 % 0.0 % inc).str() << std::endl;
+
+    	// print atom positions
+    	for(unsigned int i=0; i<atoms.size(); i++) {
+    		outfile << (boost::format("%i  %g  %g  %g") % atoms[i] % pos[i][0] % pos[i][1] % pos[i][2]).str() << std::endl;
+    	}
 
 		unsigned int cnt = 0;
 		for(double x=-range; x<=range; x+=inc) {
@@ -97,7 +110,7 @@ void DensityPlotter::plot_densities_cube(const std::vector<CGF>& cgfs, const Eig
 						sum += coefs[j] * cgfs[j].get_value(x,y,z);
 					}
 
-					outfile << (boost::format("%12.6f ") % ((sum * sum) * 2.0)).str();
+					outfile << (boost::format("  %g") % ((sum * sum) * 2.0)).str();
 
 					cnt++;
 					if(cnt % 6 == 0) {

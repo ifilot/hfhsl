@@ -23,6 +23,7 @@
 #define _DENSITY_PLOTTER_H
 
 #include <fstream>
+#include <string>
 #include <Eigen/Eigenvalues>
 #include <boost/format.hpp>
 
@@ -37,7 +38,10 @@ public:
 
 	void plot_densities_chgcar(const std::vector<CGF>& cgfs, const Eigen::MatrixXd& C);
 
-	void plot_densities_cube(const std::vector<CGF>& cgfs, const Eigen::MatrixXd& C);
+	void plot_densities_cube(const std::vector<unsigned int>& atoms, 
+							 const std::vector<vec3>& pos,
+							 const std::vector<CGF>& cgfs, 
+							 const Eigen::MatrixXd& C);
 
 private:
 

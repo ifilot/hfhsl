@@ -307,9 +307,12 @@ int main() {
 
     std::cout << "Solution matrix; each column is a solution" << std::endl;
     std::cout << C << std::endl;
+    std::cout << std::endl;
 
     DensityPlotter dp;
-    dp.plot_densities_cube(cgfs, C);
+    std::vector<unsigned int> atoms = {6,8};
+    std::vector<vec3> pos = {pos1, pos2};
+    dp.plot_densities_cube(atoms, pos, cgfs, C);
 
     return 0;
 }
