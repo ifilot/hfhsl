@@ -23,6 +23,7 @@
 
 #include "cgf.h"
 #include "integrals.h"
+#include "density_plotter.h"
 
 /*
  * Calculates the energy of H2 using the Hartree-Fock Self-Consistent Field
@@ -261,7 +262,7 @@ int main() {
 
         // Obtain true coefficient matrix using the transformation matrix
         C = X * Cc;
-        orbital_energies = en.diagonal();;
+        orbital_energies = en.diagonal();
 
         /*********************************
          *
@@ -295,11 +296,20 @@ int main() {
     }
 
     std::cout << "Stopping because energy convergence was achieved." << std::endl;
+    std::cout << std::endl;
 
     // outputting orbital energies
+    std::cout << "Outputting orbital energies" << std::endl;
     for(unsigned int i=0; i<10; i++) {
         std::cout << "e" << i+1 << "= " << orbital_energies[i] << std::endl;
     }
+    std::cout << std::endl;
+
+    std::cout << "Solution matrix; each column is a solution" << std::endl;
+    std::cout << C << std::endl;
+
+    // DensityPlotter dp;
+    // dp.plot_densities(cgfs, C);
 
     return 0;
 }

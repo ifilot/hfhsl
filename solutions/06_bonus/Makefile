@@ -24,7 +24,7 @@ else
 endif
 
 # add here the source files for the compilation
-SOURCES = hfcxx.cpp cgf.cpp integrals.cpp gamma.cpp
+SOURCES = hfcxx.cpp cgf.cpp integrals.cpp gamma.cpp density_plotter.cpp
 
 # create the obj variable by substituting the extension of the sources
 # and adding a path

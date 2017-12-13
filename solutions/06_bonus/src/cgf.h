@@ -54,6 +54,8 @@ public:
         unsigned int _m,
         unsigned int _n);
 
+    double get_value(double x, double y, double z) const;
+
     inline const double get_alpha() const {
         return this->alpha;
     }
@@ -109,6 +111,8 @@ public:
 
         NUM_GTO
     };
+
+    double get_value(double x, double y, double z) const;
 
     inline const unsigned int size() const {
         return this->gtos.size();

@@ -52,9 +52,27 @@ void GTO::calculate_normalization_constant() {
     this->norm = std::sqrt(nom / denom);
 }
 
+double GTO::get_value(double x, double y, double z) const {
+    return this->c * 
+           std::pow(x - this->r[0], l) *
+           std::pow(y - this->r[1], m) *
+           std::pow(z - this->r[2], n) *
+           std::exp(-this->alpha * (this->r - vec3(x,y,z)).squaredNorm());
+}
+
 CGF::CGF(const vec3& _r):
     r(_r) {
         // do nothing
+}
+
+double CGF::get_value(double x, double y, double z) const {
+    double sum = 0.0;
+
+    for(const auto& gto : this->gtos) {
+        sum += gto.get_value(x,y,z);
+    }
+
+    return sum;
 }
 
 void CGF::add_gto(unsigned int type,  // type of the orbital (see above for the list)
