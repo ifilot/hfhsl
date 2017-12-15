@@ -21,10 +21,17 @@
 
 #include "density_plotter.h"
 
-DensityPlotter::DensityPlotter() {
+/**
+ * @brief      default constructor
+ */
+DensityPlotter::DensityPlotter() {}
 
-}
-
+/**
+ * @brief      export electron densities of each MO to a CHGCAR file (VASP density format)
+ *
+ * @param[in]  cgfs  reference to vector of contracted gaussian functionals
+ * @param[in]  C     reference to coefficient matrix C
+ */
 void DensityPlotter::plot_densities_chgcar(const std::vector<CGF>& cgfs, const Eigen::MatrixXd& C) {
 	static const double range = 10;
 	static const double inc = 0.2;
@@ -71,6 +78,15 @@ void DensityPlotter::plot_densities_chgcar(const std::vector<CGF>& cgfs, const E
 	}
 }
 
+/**
+ * @brief      export electron densities of each MO to a cube file (Gaussian
+ *             format)
+ *
+ * @param[in]  atoms  vector of atom number of atoms
+ * @param[in]  pos    position of the atoms
+ * @param[in]  cgfs   set of contracted gaussian functions (basis set)
+ * @param[in]  C      coefficient matrix
+ */
 void DensityPlotter::plot_densities_cube(const std::vector<unsigned int>& atoms, 
 										 const std::vector<vec3>& pos,
 										 const std::vector<CGF>& cgfs, 

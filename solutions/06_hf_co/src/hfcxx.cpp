@@ -26,7 +26,7 @@
 
 /*
  * Calculates the energy of H2 using the Hartree-Fock Self-Consistent Field
- * method. An 3-21G basis set is used in the description of the 1s orbitals
+ * method. An STO-3G basis set is used in the description of the 1s orbitals
  * of the two H atoms. The H atoms are positioned 1.4 a.u. apart.
  *
  * All calculations are performed in standard units.
@@ -34,26 +34,78 @@
 
 int main() {
 
-    // construct two CGFs for two H atoms 1.4 a.u. apart
-    const vec3 pos1(0.0, 0.0, 0.0);
-    CGF cgf1(pos1);
-    cgf1.add_gto(CGF::GTO_S, 3.4252509099999999,  0.15432897000000001, pos1);
-    cgf1.add_gto(CGF::GTO_S, 0.62391373000000006, 0.53532813999999995, pos1);
-    cgf1.add_gto(CGF::GTO_S, 0.16885539999999999, 0.44463454000000002, pos1);
+    /*********************************
+     *
+     * STEP 1: Define nuclei and basis functions
+     *
+     *********************************/
 
-    const vec3 pos2(0.0, 0.0, 1.4);
-    CGF cgf2(pos2);
-    cgf2.add_gto(CGF::GTO_S, 3.4252509099999999,  0.15432897000000001, pos2);
-    cgf2.add_gto(CGF::GTO_S, 0.62391373000000006, 0.53532813999999995, pos2);
-    cgf2.add_gto(CGF::GTO_S, 0.16885539999999999, 0.44463454000000002, pos2);
-
-    // Collect all CGFS in a vector object
     std::vector<CGF> cgfs;
-    cgfs.push_back(cgf1);
-    cgfs.push_back(cgf2);
+    // construct the CGFs for CO
+    // C
+    const vec3 pos1(0.0, 0.0, 0.0);
+    // 1S
+    cgfs.emplace_back(pos1);
+    cgfs.back().add_gto(CGF::GTO_S, 71.616837,  0.154329, pos1);
+    cgfs.back().add_gto(CGF::GTO_S, 13.045096, 0.535328, pos1);
+    cgfs.back().add_gto(CGF::GTO_S, 3.530512, 0.444635, pos1);
+    // 2S
+    cgfs.emplace_back(pos1);
+    cgfs.back().add_gto(CGF::GTO_S, 2.941249,  -0.099967, pos1);
+    cgfs.back().add_gto(CGF::GTO_S, 0.683483, 0.399513, pos1);
+    cgfs.back().add_gto(CGF::GTO_S, 0.222290, 0.700115, pos1);
+    // 2Px
+    cgfs.emplace_back(pos1);
+    cgfs.back().add_gto(CGF::GTO_PX, 2.941249,  0.155916, pos1);
+    cgfs.back().add_gto(CGF::GTO_PX, 0.683483, 0.607684, pos1);
+    cgfs.back().add_gto(CGF::GTO_PX, 0.222290, 0.391957, pos1);
+    // 2Py
+    cgfs.emplace_back(pos1);
+    cgfs.back().add_gto(CGF::GTO_PY, 2.941249,  0.155916, pos1);
+    cgfs.back().add_gto(CGF::GTO_PY, 0.683483, 0.607684, pos1);
+    cgfs.back().add_gto(CGF::GTO_PY, 0.222290, 0.391957, pos1);
+    // 2Pz
+    cgfs.emplace_back(pos1);
+    cgfs.back().add_gto(CGF::GTO_PZ, 2.941249,  0.155916, pos1);
+    cgfs.back().add_gto(CGF::GTO_PZ, 0.683483, 0.607684, pos1);
+    cgfs.back().add_gto(CGF::GTO_PZ, 0.222290, 0.391957, pos1);
+
+    // O
+    const vec3 pos2(0.0, 0.0, 2.116);
+    // 1S
+    cgfs.emplace_back(pos2);
+    cgfs.back().add_gto(CGF::GTO_S, 130.709320,  0.154329, pos2);
+    cgfs.back().add_gto(CGF::GTO_S, 23.808861, 0.535328, pos2);
+    cgfs.back().add_gto(CGF::GTO_S, 6.443608, 0.444635, pos2);
+    // 2S
+    cgfs.emplace_back(pos2);
+    cgfs.back().add_gto(CGF::GTO_S, 5.033151,  -0.099967, pos2);
+    cgfs.back().add_gto(CGF::GTO_S, 1.169596, 0.399513, pos2);
+    cgfs.back().add_gto(CGF::GTO_S, 0.380389, 0.700115, pos2);
+    // 2Px
+    cgfs.emplace_back(pos2);
+    cgfs.back().add_gto(CGF::GTO_PX, 5.033151,  0.155916, pos2);
+    cgfs.back().add_gto(CGF::GTO_PX, 1.169596, 0.607684, pos2);
+    cgfs.back().add_gto(CGF::GTO_PX, 0.380389, 0.391957, pos2);
+    // 2Py
+    cgfs.emplace_back(pos2);
+    cgfs.back().add_gto(CGF::GTO_PY, 5.033151,  0.155916, pos2);
+    cgfs.back().add_gto(CGF::GTO_PY, 1.169596, 0.607684, pos2);
+    cgfs.back().add_gto(CGF::GTO_PY, 0.380389, 0.391957, pos2);
+    // 2Pz
+    cgfs.emplace_back(pos2);
+    cgfs.back().add_gto(CGF::GTO_PZ, 5.033151,  0.155916, pos2);
+    cgfs.back().add_gto(CGF::GTO_PZ, 1.169596, 0.607684, pos2);
+    cgfs.back().add_gto(CGF::GTO_PZ, 0.380389, 0.391957, pos2);
 
     // create integrator object
     Integrator integrator;
+
+    /*********************************
+     *
+     * STEP 2: Calculate S, T, V, H and TE-integrals
+     *
+     *********************************/
 
     // Construct 2x2 matrices to hold values for the overlap,
     // kinetic and two nuclear integral values, respectively.
@@ -64,11 +116,11 @@ int main() {
 
     // calculate the integral values using the integrator class
     for(unsigned int i=0; i<cgfs.size(); i++) {
-        for(unsigned int j=0; j<cgfs.size(); j++) {
-            S(i,j) = integrator.overlap(cgfs[i], cgfs[j]);
-            T(i,j) = integrator.kinetic(cgfs[i], cgfs[j]);
-            V1(i,j) = integrator.nuclear(cgfs[i], cgfs[j], pos1, 1.0);
-            V2(i,j) = integrator.nuclear(cgfs[i], cgfs[j], pos2, 1.0);
+        for(unsigned int j=i; j<cgfs.size(); j++) {
+            S(i,j) = S(j,i) = integrator.overlap(cgfs[i], cgfs[j]);
+            T(i,j) = T(j,i) = integrator.kinetic(cgfs[i], cgfs[j]);
+            V1(i,j) = V1(j,i) = integrator.nuclear(cgfs[i], cgfs[j], pos1, 6.0);
+            V2(i,j) = V2(j,i) = integrator.nuclear(cgfs[i], cgfs[j], pos2, 8.0);
         }
     }
 
@@ -93,19 +145,33 @@ int main() {
         }
     }
 
+    /*********************************
+     *
+     * STEP 3: Calculate transformation matrix
+     *
+     *********************************/
+
     // perform a canonical diagonalization on the overlap matrix to
     // obtain orthonormal spinorbitals (required for the Slater
     // Determinant)
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S);
     Eigen::MatrixXd D = es.eigenvalues().real().asDiagonal();
     Eigen::MatrixXd U = es.eigenvectors().real();
+
     for(unsigned int i=0; i<cgfs.size(); i++) {
         D(i,i) = 1.0 / sqrt(D(i,i));
     }
 
+
     // Calculate the transformation matrix
     Eigen::MatrixXd X = U * D;
     Eigen::MatrixXd Xp = X.transpose();
+
+    /*********************************
+     *
+     * STEP 4: Obtain initial guess for density matrix
+     *
+     *********************************/
 
     // Create Density matrices
     Eigen::MatrixXd P = Eigen::MatrixXd::Zero(cgfs.size(), cgfs.size());
@@ -137,6 +203,12 @@ int main() {
     while(energy_difference > 1e-5 && loop_counter < 100) {
         loop_counter++; // increment loop counter
 
+        /*********************************
+         *
+         * STEP 5: Calculate G, H, F and F' from P
+         *
+         *********************************/
+
         // Populate two-electron hamiltonian matrix
         for(unsigned int i=0; i<cgfs.size(); i++) {
             for(unsigned int j=0; j<cgfs.size(); j++) {
@@ -156,6 +228,13 @@ int main() {
 
         // Transform Fock Matrix using our basis transformation matrix
         Eigen::MatrixXd Fp = Xp * F * X;
+              
+
+        /*********************************
+         *
+         * STEP 6: Diagonalize F' to obtain C' and e
+         *
+         *********************************/
 
         // Calculate eigenvalues and vectors
         es.compute(Fp);
@@ -172,17 +251,29 @@ int main() {
         }
 
         // Add nuclear repulsion to the orbital energies
-        energy = energy * 0.5 + 1.0 / 1.4;
+        energy = energy * 0.5 + 6.0 * 8.0 / pos2[2];
+
+        /*********************************
+         *
+         * STEP 7: Diagonalize C from C'
+         *
+         *********************************/
 
         // Obtain true coefficient matrix using the transformation matrix
         C = X * Cc;
         orbital_energies = en.diagonal();
 
+        /*********************************
+         *
+         * STEP 8: Calculate new P from C
+         *
+         *********************************/
+
         // obtain new P matrix from the old matrix
         Pnew = Eigen::MatrixXd::Zero(cgfs.size(), cgfs.size());
         for(unsigned int i=0; i<cgfs.size(); i++) {
             for(unsigned int j=0; j<cgfs.size(); j++) {
-                for(unsigned int k=0; k<1; k++) {
+                for(unsigned int k=0; k<7; k++) {
                     Pnew(i,j) += 2.0 * C(i,k) * C(j,k);
                 }
             }
@@ -204,6 +295,19 @@ int main() {
     }
 
     std::cout << "Stopping because energy convergence was achieved." << std::endl;
+    std::cout << std::endl;
+
+    // outputting orbital energies
+    std::cout << "Outputting orbital energies" << std::endl;
+    for(unsigned int i=0; i<10; i++) {
+        std::cout << "e" << i+1 << "=\t" << orbital_energies[i] << std::endl;
+    }
+    std::cout << std::endl;
+
+    std::cout << "Solution matrix; each column corresponds to an MO" << std::endl;
+    std::cout << "=================================================" << std::endl;
+    std::cout << C << std::endl;
+    std::cout << std::endl;
 
     return 0;
 }
